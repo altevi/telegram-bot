@@ -1,3 +1,8 @@
+import dotenv from "dotenv"
+
+dotenv.config()
+
+const URL = process.env.URL
 const delay = async (time) => {
     return new Promise(resolve => setTimeout(resolve, time));
 };
@@ -17,50 +22,53 @@ const formatter = (id, data) => {
     return [id, [val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7]]]
 };
 
-const register = async (myBot, page, data) => {
-    let username = data[0];
-    let password = data[1];
-    let email = data[2];
-    let no_tlp = data[3];
-    let nama = data[4];
-    let jenisBank = data[5];
-    let bank = data[6];
-    let rek = data[7];
+const register = async (myBot, page, data, url) => {
+    let id = data[0];
+    let username = data[1][0];
+    let password = data[1][1];
+    let email = data[1][2];
+    let no_tlp = data[1][3];
+    let nama = data[1][4];
+    let jenisBank = data[1][5];
+    let bank = data[1][6];
+    let rek = data[1][7];
     try {
         if (!username) {
-            console.log("mohon mengisi username anda");
-            return;
+            await myBot.sendMessage(id, "mohon mengisi username anda");
+            return true;
         }
         if (!password) {
-            console.log("mohon mengisi password anda");
-            return;
+            await myBot.sendMessage(id, "mohon mengisi password anda");
+            return true;
         }
         if (!email) {
-            console.log("mohon mengisi email anda");
-            return;
+            await myBot.sendMessage(id, "mohon mengisi email anda");
+            return true;
         }
         if (!no_tlp) {
-            console.log("mohon mengisi nomor telepon anda");
-            return;
+             await myBot.sendMessage(id, "mohon mengisi nomor telepon anda");
+            return true;
         }
         if (!nama) {
-            console.log("mohon mengisi nama anda");
-            return;
+             await myBot.sendMessage(id, "mohon mengisi nama anda");
+            return true;
         }
         if (!jenisBank) {
-            console.log("mohon mengisi janis bank anda");
-            return;
+             await myBot.sendMessage(id, "mohon mengisi janis bank anda");
+            return true;
         }
         if (!bank) {
-            console.log("mohon mengisi nama bank anda");
-            return;
+             await myBot.sendMessage(id, "mohon mengisi nama bank anda");
+            return true;
         }
         if (!rek) {
-            console.log("mohon mengisi nomor rekening anda");
-            return;
+             await myBot.sendMessage(id, "mohon mengisi nomor rekening anda");
+            return true;
         }
 
         await page.goto(`${URL}/register`);
+
+        console.log(data[1])
         await page.type('#user_name', username);//isi username
         await page.type('#password_1', password);// isi password
         await page.type('#password_confirm', password);// isi konfirmasi password
@@ -87,10 +95,10 @@ const register = async (myBot, page, data) => {
         const element = await page.$("#registerForm1 > div.register_form_two > div.form-group.row.no-gutters > img");
         await element.screenshot({path: "src/image/test.png"});
         await myBot.sendPhoto(id, "src/image/test.png", {caption: "Isi CAPTCHA ini"}, {filename: "captcha.png"});
-        return true;
+        return false;
     } catch (e) {
         await myBot.sendMessage(id, "Data yang dimasukkan salah, silahkan mengulangi registrasi!");
-        return false;
+        return true;
     }
 };
 

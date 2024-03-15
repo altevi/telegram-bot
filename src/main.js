@@ -10,14 +10,14 @@ const TOKEN = process.env.TOKEN;
 const URL = process.env.URL;
 const PREFIX = "/"
 const start = new RegExp(`^${PREFIX}start$`)
-const userPages = new Map();
+export const userPages = new Map();
 
 const botOption = {
     polling: true,
 };
 
 const browserOption = {
-    headless: true,
+    headless: false,
     defaultViewport: {
         width: 1200,
         height: 1200,
@@ -27,7 +27,11 @@ const browserOption = {
 
 const browser = await puppeteer.launch(browserOption);
 
-const myBot = new TelegramBot(TOKEN, botOption);
+export const myBot = new TelegramBot(TOKEN, botOption);
+
+myBot.on("connect", () => {
+    console.log("connected")
+})
 
 myBot.onText(start, async (callback) => {
     return myBot.sendMessage(callback.from.id, "hello")
@@ -40,19 +44,20 @@ myBot.on("message", async (callback) => {
         return
 
     const chat = callback.text
-
+    console.log(userPages)
     if (chat.includes("/register")){
         if (!userPages.has(id)){
+            userPages.set(id, [await browser.newPage()])
             addRegisQueue(await customFunction.formatter(id, chat))
-            userPages.set(id, await browser.newPage())
             return
         }
-        await myBot.sendMessage(id, "mohon ditunggu sampai proses registrasi selesai")
+        return myBot.sendMessage(id, "mohon ditunggu sampai proses registrasi selesai")
     }
     if (chat.includes("/captcha")){
         console.log(userPages)
         if (userPages.has(id)){
-            addVerifyQueue([id, callback.text.split(" ")[1]])
+            const data = userPages.get(id)
+            addVerifyQueue([id, callback.text.split(" ")[1], data[1], data[2]])
             return
         }
         return myBot.sendMessage(id, "nope")

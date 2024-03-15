@@ -1,5 +1,7 @@
 import Bull from "bull";
 import dotenv from "dotenv"
+import {myBot, userPages} from "./main.js";
+import customFunction from "./custom-function.js";
 
 dotenv.config()
 
@@ -15,16 +17,23 @@ const regisQueue = new Bull("register", redisOptions)
 const verifyQueue = new Bull("verify", redisOptions)
 
 regisQueue.process(async (payload, done) => {
-    console.log(await regisQueue.count())
     const {data} = payload.data
-    console.log(data)
+    const page = userPages.get(data[0])[0]
+    const error = await customFunction.register(myBot, page, data, URL)
+    if (error){
+        await page.close()
+        userPages.delete(data[0])
+    }else{
+        userPages.set(data[0], [page, data[1][0], data[1][1]])
+    }
     done()
 })
 
 verifyQueue.process(async (payload, done) => {
-    console.log(await verifyQueue.count())
     const {data} = payload.data
-    console.log(data)
+    const page = userPages.get(data[0])[0]
+    await customFunction.verify(myBot, page, data)
+    userPages.delete(data[0])
     done()
 })
 
