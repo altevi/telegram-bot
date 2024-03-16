@@ -16,7 +16,7 @@ const botOption = {
 };
 
 const browserOption = {
-    headless: false,
+    headless: true,
     defaultViewport: {
         width: 1200,
         height: 1200,
@@ -26,10 +26,6 @@ const browserOption = {
 const browser = await puppeteer.launch(browserOption);
 
 export const myBot = new TelegramBot(TOKEN, botOption);
-
-myBot.on("connect", () => {
-    console.log("connected");
-});
 
 myBot.onText(start, async (callback) => {
     return myBot.sendMessage(callback.from.id, "hello");
@@ -42,8 +38,7 @@ myBot.on("message", async (callback) => {
         return;
 
     const chat = callback.text;
-    console.log(userPages);
-    if (chat.includes("/register")) {
+    if (chat.startsWith("/register") || chat.startsWith("/r")) {
         if (!userPages.has(id)) {
             userPages.set(id, [await browser.newPage()]);
             addRegisQueue(customFunction.formatter(id, chat));
@@ -51,8 +46,7 @@ myBot.on("message", async (callback) => {
         }
         return myBot.sendMessage(id, "mohon ditunggu sampai proses registrasi selesai");
     }
-    if (chat.includes("/captcha")) {
-        console.log(userPages);
+    if (chat.startsWith("/captcha")|| chat.startsWith("/c")) {
         if (userPages.has(id)) {
             const data = userPages.get(id);
             addVerifyQueue([id, callback.text.split(" ")[1], data[1], data[2]]);

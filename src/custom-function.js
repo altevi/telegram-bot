@@ -60,8 +60,6 @@ const register = async (myBot, page, data) => {
         }
 
         await page.goto(`${URL}/register`);
-
-        console.log(data[1]);
         await page.type('#user_name', username);
         await page.type('#password_1', password);
         await page.type('#password_confirm', password);
@@ -96,7 +94,7 @@ const register = async (myBot, page, data) => {
 };
 
 const verify = async (myBot, page, data) => {
-    let [id, number, username, password] = data[0];
+    let [id, number, username, password] = data;
     try {
         await page.type("#captcha", number);
         await page.click("#register_form_two_submit_btn > button");
