@@ -13,7 +13,9 @@
   "dependencies": {
     "bull": "^4.12.2",
     "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
     "node-telegram-bot-api": "^0.65.1",
-    "puppeteer": "^22.4.1"
+    "puppeteer": "^22.4.1",
+    "redis": "^4.6.13"
   }
 }

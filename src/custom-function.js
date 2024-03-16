@@ -1,11 +1,23 @@
 import dotenv from "dotenv";
+import myRedis from "./my-redis.js";
 
 dotenv.config();
 
 const URL = process.env.URL;
+
+const remove = async (myBot, id, msgID) => {
+    await myBot.deleteMessage(id, msgID)
+}
+
 const delay = async (time) => {
     return new Promise(resolve => setTimeout(resolve, time));
 };
+
+const addMessage = async (data) => {
+    const id = data.chat.id;
+    const msgID = data.message_id;
+    await myRedis.setData(id, msgID)
+}
 
 const formatter = (id, data) => {
     const abs = ["username", "password", "email", "no tlp", "nama", "jenis bank", "bank", "rek"];
@@ -27,35 +39,35 @@ const register = async (myBot, page, data) => {
     let [username, password, email, no_tlp, nama, jenis_bank, bank, rek] = data[1];
     try {
         if (!username) {
-            await myBot.sendMessage(id, "mohon mengisi username anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi username anda"));
             return true;
         }
         if (!password) {
-            await myBot.sendMessage(id, "mohon mengisi password anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi password anda"));
             return true;
         }
         if (!email) {
-            await myBot.sendMessage(id, "mohon mengisi email anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi email anda"));
             return true;
         }
         if (!no_tlp) {
-            await myBot.sendMessage(id, "mohon mengisi nomor telepon anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi nomor telepon anda"));
             return true;
         }
         if (!nama) {
-            await myBot.sendMessage(id, "mohon mengisi nama anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi nama anda"));
             return true;
         }
         if (!jenis_bank) {
-            await myBot.sendMessage(id, "mohon mengisi janis bank anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi janis bank anda"));
             return true;
         }
         if (!bank) {
-            await myBot.sendMessage(id, "mohon mengisi nama bank anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi nama bank anda"));
             return true;
         }
         if (!rek) {
-            await myBot.sendMessage(id, "mohon mengisi nomor rekening anda");
+            await addMessage(await myBot.sendMessage(id, "mohon mengisi nomor rekening anda"));
             return true;
         }
 
@@ -85,10 +97,10 @@ const register = async (myBot, page, data) => {
 
         const element = await page.$("#registerForm1 > div.register_form_two > div.form-group.row.no-gutters > img");
         await element.screenshot({path: "src/image/test.png"});
-        await myBot.sendPhoto(id, "src/image/test.png", {caption: "Isi CAPTCHA ini"}, {filename: "captcha.png"});
+        await addMessage(await myBot.sendPhoto(id, "src/image/test.png", {caption: "Isi CAPTCHA ini"}, {filename: "captcha.png"}));
         return false;
     } catch (e) {
-        await myBot.sendMessage(id, "Data yang dimasukkan salah, silahkan mengulangi registrasi!");
+        await addMessage(await myBot.sendMessage(id, "Data yang dimasukkan salah, silahkan mengulangi registrasi!"));
         return true;
     }
 };
@@ -102,15 +114,17 @@ const verify = async (myBot, page, data) => {
             visible: true,
             timeout: 3000,
         });
-        await myBot.sendMessage(id, `registrasi berhasil\nUsername: ${username}\nPassword: ${password}`);
+        await addMessage(await myBot.sendMessage(id, `registrasi berhasil\nUsername: ${username}\nPassword: ${password}`));
     } catch (e) {
-        await myBot.sendMessage(id, "error, silahkan mengulangi registrasi!");
+        await addMessage(await myBot.sendMessage(id, "error, silahkan mengulangi registrasi!"));
     }
     await page.close();
 };
 
 export default {
+    remove,
     formatter,
     register,
     verify,
+    addMessage
 };
