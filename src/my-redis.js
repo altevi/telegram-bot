@@ -27,7 +27,7 @@ const clearBefore = async () => {
 
 const task = cron.schedule('0 * * * *', async () => {
     await removeKeys();
-});
+}, {runOnInit: true});
 
 task.start();
 
@@ -40,14 +40,17 @@ const removeKeys = async () => {
     let keys = await client.keys("*");
     keys = keys.filter(item => !item.startsWith("bull"));
     keys = keys.filter(item => item.includes(TOKEN));
-    keys = keys.filter(item => ((time - parseInt(item.split(":")[1])) / 3600) >= 12);
+    keys = keys.filter(item => ((time - parseInt(item.split(":")[1])) / 3600) >= 10);
+    if (keys.length === 0) {
+        return;
+    }
     for (const item of keys) {
         const [userID, time, messageID] = item.split(":");
         await customFunction.remove(userID, messageID);
     }
     await client.del(keys);
 };
-clearBefore();
+await clearBefore();
 export default {
     setData,
     removeKeys,

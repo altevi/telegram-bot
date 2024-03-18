@@ -52,26 +52,26 @@ const register = async (myBot, page, data) => {
         await page.type('#email', email);
         await page.type('#mobile_no', no_tlp);
         await page.focus("#refCodeInput");
-        await delay(88);
-        if ((await page.$eval('#registerForm1 > div.register_form_one > div:nth-child(2) > div.col-md-7 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        await delay(100);
+        if ((await page.$eval('#user_name', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "username tidak valid, gunakan username yang sesuai"), page);
             return true;
         }
-        if ((await page.$eval('#registerForm1 > div.register_form_one > div:nth-child(3) > div.col-md-7 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        if ((await page.$eval('#password_1', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "password tidak valid, gunakan password yang sesuai"), page);
             return true;
         }
-        if ((await page.$eval('#registerForm1 > div.register_form_one > div:nth-child(6) > div.col-md-7 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        if ((await page.$eval('#email', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "email tidak valid, gunakan email yang sesuai"), page);
             return true;
         }
-        if ((await page.$eval('#registerForm1 > div.register_form_one > div:nth-child(7) > div.col-md-7 > div > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        if ((await page.$eval('#mobile_no', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "nomor telpon tidak valid, gunakan nomor telpon yang sesuai"), page);
             return true;
         }
 
         await page.click("#register_form_two_next_btn > button");
-        await delay(88);
+        await delay(100);
         await page.waitForSelector("#register_form_two_submit_btn > button", {
             visible: true,
             timeout: 2000,
@@ -86,15 +86,15 @@ const register = async (myBot, page, data) => {
         }
         await page.type("#acc_no", rek); // isi no rek
         await page.focus("#captcha");
-        await delay(88);
+        await delay(100);
         await page.click("#registerForm1 > div.register_form_two > div.form-group.form-check.submit-box > div:nth-child(1) > div > label");
         await page.click("#registerForm1 > div.register_form_two > div.form-group.form-check.submit-box > div:nth-child(2) > div > label");
 
-        if ((await page.$eval('#registerForm1 > div.register_form_two > div:nth-child(3) > div.col-md-7 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        if ((await page.$eval('#name1', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "nama tidak valid, gunakan nama yang sesuai"), page);
             return true;
         }
-        if ((await page.$eval('#registerForm1 > div.register_form_two > div:nth-child(7) > div.col-md-7 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
+        if ((await page.$eval('#acc_no', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "nomor rekening tidak valid, gunakan nomor rekening yang sesuai"), page);
             return true;
         }
@@ -113,27 +113,33 @@ const register = async (myBot, page, data) => {
 const verify = async (myBot, page, data) => {
     let [id, number, username, password] = data;
     try {
+        await page.evaluate(() => document.querySelector("#captcha").value = "");
         await page.type("#captcha", number);
+        await page.focus("#register_form_two_submit_btn > button");
+        await delay(100);
 
-        if ((await page.$eval('#registerForm1 > div.register_form_two > div.form-group.row.no-gutters > div.col-xs-3.col-md-2 > i', element => element.getAttribute("class"))).includes("icon-cancel")) {
-            await addMessage(await myBot.sendMessage(id, "nomor rekening tidak valid, gunakan nomor rekening yang sesuai"), page);
+        if ((await page.$eval('#captcha', element => element.getAttribute("class"))).includes("has-error")) {
+            await addMessage(await myBot.sendMessage(id, "captcha salah silahkan diulangi"), page);
             await page.click("#registerForm1 > div.register_form_two > div.form-group.row.no-gutters > button");
             return true;
         }
+
+        await delay(5000);
         await page.click("#register_form_two_submit_btn > button");
         await page.waitForSelector("body > div.content.my01 > div > div > div > div.centered-container > a > button", {
             visible: true,
             timeout: 3000,
         });
         await addMessage(await myBot.sendMessage(id, `registrasi berhasil\nUsername: ${username}\nPassword: ${password}`));
+
+        await page.close();
+        return false;
     } catch (e) {
         const element = await page.$("body > div.content.my01 > div > div > div.col-md-8.clearfix");
         await element.screenshot({path: "src/image/test3.png"});
         await addMessage(await myBot.sendPhoto(id, "src/image/test3.png", {caption: "error, silahkan mengulangi registrasi!"}, {filename: "error.png"}));
-        return true;
+        return false;
     }
-    await page.close();
-    return false;
 };
 
 export default {

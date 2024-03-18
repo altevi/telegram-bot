@@ -25,19 +25,21 @@ regisQueue.process(async (payload, done) => {
         await page.close();
         userPages.delete(data[0]);
     } else {
-        userPages.set(data[0], [page, data[1][0], data[1][1]]);
-    }k
+        userPages.set(data[0], [page, data[1][0], data[1][1], "captcha"]);
+    }
     done();
 });
 
 verifyQueue.process(async (payload, done) => {
-    const {data} = payload.data;
-    const page = userPages.get(data[0])[0];
-    const error = await customFunction.verify(myBot, page, data);
-    if (error) {
 
-    } else {
+    const {data} = payload.data;
+    const userData = userPages.get(data[0]);
+    const [page, username, password, status] = userData;
+    const error = await customFunction.verify(myBot, page, data);
+    if (!error) {
         userPages.delete(data[0]);
+    } else {
+        userPages.set(data[0], [page, username, password, "captcha"])
     }
     done();
 });
