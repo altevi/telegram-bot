@@ -1,5 +1,4 @@
 import {createClient} from "redis";
-import customFunction from "./custom-function.js";
 import cron from "node-cron";
 import dotenv from "dotenv";
 
@@ -19,17 +18,11 @@ const client = await createClient({
     .connect();
 
 const clearBefore = async () => {
-    const keys = await client.keys("bull:*:" + TOKEN + ":*");
+    const keys = await client.keys(`bull:*:${TOKEN}:*`);
     if (keys.length !== 0) {
         await client.del(keys);
     }
 };
-
-const task = cron.schedule('0 * * * *', async () => {
-    await removeKeys();
-}, {runOnInit: true});
-
-task.start();
 
 const setData = async (id, msgID, timestamp) => {
     await client.set(`${id}:${timestamp}:${msgID}:${TOKEN}`, 1);
@@ -37,9 +30,7 @@ const setData = async (id, msgID, timestamp) => {
 
 const removeKeys = async () => {
     const time = Date.now() / 1000;
-    let keys = await client.keys("*");
-    keys = keys.filter(item => !item.startsWith("bull"));
-    keys = keys.filter(item => item.includes(TOKEN));
+    let keys = await client.keys(`*:*:*:${TOKEN}`);
     keys = keys.filter(item => ((time - parseInt(item.split(":")[1])) / 3600) >= 10);
     if (keys.length === 0) {
         return;
@@ -50,8 +41,21 @@ const removeKeys = async () => {
     }
     await client.del(keys);
 };
+
+const increaseCounter = async () => {
+    await client.incr(`counter:${TOKEN}`)
+}
+
+const task = cron.schedule('0 * * * *', async () => {
+    await removeKeys();
+    console.log("run")
+}, {runOnInit: true});
+
+task.start();
 await clearBefore();
+
 export default {
     setData,
     removeKeys,
+    increaseCounter
 };

@@ -21,11 +21,6 @@ const addMessage = async (data) => {
     await myRedis.setData(id, msgID, timestamp);
 };
 
-const checkValidation = async (ele, page) => {
-    return page.$eval(ele, element => element.getAttribute("aria-invalid"));
-};
-
-
 const formatter = (id, data) => {
     const abs = ["username", "password", "email", "no tlp", "nama", "jenis bank", "bank", "rek"];
     let val = [];
@@ -87,8 +82,9 @@ const register = async (myBot, page, data) => {
         await page.type("#acc_no", rek); // isi no rek
         await page.focus("#captcha");
         await delay(100);
-        await page.click("#registerForm1 > div.register_form_two > div.form-group.form-check.submit-box > div:nth-child(1) > div > label");
-        await page.click("#registerForm1 > div.register_form_two > div.form-group.form-check.submit-box > div:nth-child(2) > div > label");
+
+        await page.evaluate(() => document.querySelector("#terms").checked = true);
+        await page.evaluate(() => document.querySelector("#RememberMe").checked = false);
 
         if ((await page.$eval('#name1', element => element.getAttribute("class"))).includes("has-error")) {
             await addMessage(await myBot.sendMessage(id, "nama tidak valid, gunakan nama yang sesuai"), page);
@@ -124,14 +120,14 @@ const verify = async (myBot, page, data) => {
             return true;
         }
 
-        await delay(5000);
-        await page.click("#register_form_two_submit_btn > button");
+        await page.evaluate(() => document.querySelector("#register_form_two_submit_btn > button").click());
         await page.waitForSelector("body > div.content.my01 > div > div > div > div.centered-container > a > button", {
             visible: true,
             timeout: 3000,
         });
         await addMessage(await myBot.sendMessage(id, `registrasi berhasil\nUsername: ${username}\nPassword: ${password}`));
 
+        await myRedis.increaseCounter();
         await page.close();
         return false;
     } catch (e) {
