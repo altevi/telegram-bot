@@ -7,7 +7,6 @@ import {addRegisQueue, addVerifyQueue} from "./bull-custom.js";
 dotenv.config();
 
 const TOKEN = process.env.TOKEN || "YOUR-TELEGRAM-BOT-TOKEN";
-const headless = process.env.REDIS_HOST !== "localhost";
 const PREFIX = "/";
 const start = new RegExp(`^${PREFIX}start$`);
 const register = new RegExp(`^${PREFIX}(register|regis|reg|r)`);
@@ -20,7 +19,12 @@ const botOption = {
 };
 
 const browserOption = {
-    headless: headless,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
+    args: [
+        "--disable-setuid-sandbox",
+        "--no-sandbox",
+    ],
+    headless: true,
     defaultViewport: {
         width: 1200,
         height: 1200,

@@ -1,0 +1,14 @@
+version: "3.5"
+services:
+  app:
+    container_name: app
+    build: .
+    depends_on:
+      - redis
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    hostname: redis.local
+    ports:
+      - "127.0.0.1:6379:6379"
